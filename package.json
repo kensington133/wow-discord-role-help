@@ -1,0 +1,24 @@
+{
+  "name": "wow-discord-bot",
+  "version": "1.0.0",
+  "description": "Update discord server memebers roles with their WoW character guild rank ",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kensington133/wow-discord-role-help.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kensington133/wow-discord-role-help/issues"
+  },
+  "homepage": "https://github.com/kensington133/wow-discord-role-help#readme",
+  "dependencies": {
+    "blizzard.js": "^2.0.3",
+    "dotenv": "^4.0.0",
+    "eris": "^0.8.0"
+  }
+}
