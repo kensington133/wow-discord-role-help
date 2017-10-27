@@ -3,8 +3,16 @@ require('dotenv').config();
 const Eris = require("eris");
 const blizzard = require('blizzard.js').initialize({ apikey: process.env.BLIZZARD_API_KEY });
 
-console.log('DISCORD_BOT_TOKEN', process.env.DISCORD_BOT_TOKEN);
-console.log('BLIZZARD_API_KEY', process.env.BLIZZARD_API_KEY);
+// Load the Cloudant library.
+var Cloudant = require('cloudant');
+
+var me = process.env.CLOUDANT_USER;
+var password = process.env.CLOUDANT_PASSWORD;
+
+// Initialize the library with my account.
+var cloudant = Cloudant({account:me, password:password});
+
+var db = cloudant.db.use("wow_discord_bot");
 
 const bot = new Eris(process.env.DISCORD_BOT_TOKEN);
 
@@ -45,6 +53,36 @@ bot.on("messageCreate", (msg) => {
         guild = parts[1];
 
         bot.createMessage(msg.channel.id, 'Guild set to '+ parts[1].toUpperCase());
+    }
+
+    if(msg.content === '!wh-save'){
+        console.log(region, realm, guild, msg.channel.guild.id);
+        if(region && realm && guild){
+            db.insert({ region: region, guild: guild, realm: realm }, msg.channel.guild.id, function(err, body) {
+                if (!err){
+                    console.log(body);
+                    bot.createMessage(msg.channel.id, 'Successfully save to DB: ' + body);
+                } else {
+                    console.log(body);
+                    bot.createMessage(msg.channel.id, 'Error saving to DB: ' + body);
+                }
+            });
+        } else {
+            bot.createMessage(msg.channel.id, 'You need to provide your region, realm and guild name using the commands: `!wh-setregion EU|US` `!wh-setrealm realm name` and `!wh-setguild guild name`');
+        }
+    }
+
+    if(msg.content === '!wh-load'){
+        db.get(msg.channel.guild.id, { revs_info: true }, function(err, body) {
+            if (!err){
+                region = body.region;
+                realm = body.realm;
+                guild = body.guild;
+                bot.createMessage(msg.channel.id, `Load successful \r\nRegion: ${body.region}\r\nRealm: ${body.realm}\r\nGuild: ${body.guild}`);
+            } else {
+                bot.createMessage(msg.channel.id, 'You need to provide your region, realm and guild name using the commands: `!wh-setregion EU|US` `!wh-setrealm realm name` and `!wh-setguild guild name`');
+            }
+        });
     }
 
     if(msg.content === '!wh-guildinfo'){
