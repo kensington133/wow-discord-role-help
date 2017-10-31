@@ -108,7 +108,6 @@ Members: ${guildData.members.length}`;
     }
 
     if(!msg.author.bot && msg.content === '!wh-rolelist'){
-        console.log(msg.channel.guild.roles);
         let message = `${msg.channel.guild.name} roles:\r\n` + msg.channel.guild.roles.map(role => `${role.name}: ${role.position}`).join('\r\n');
 
         bot.createMessage(msg.channel.id, message);
@@ -140,7 +139,21 @@ Members: ${guildData.members.length}`;
                     });
                 }
 
-                console.log(discordMember);
+                // console.log(msg.channel.guild.roles);
+
+                let assignedRoles = [];
+                for(let i in discordMember.roles){
+
+                    var assignedRole = msg.channel.guild.roles.find(function(role){
+                        return role.id == discordMember.roles[i].id;
+                    });
+
+                    assignedRoles.push(assignedRole);
+                }
+
+                if(assignedRoles.length > 0){
+                    console.log(assignedRoles);
+                }
 
                 if (usersGuildMember){
                     return `Discord name: ${discordMember.nick || discordMember.user.username}
