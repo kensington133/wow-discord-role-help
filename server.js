@@ -124,48 +124,59 @@ Members: ${guildData.members.length}`;
                 return a.rank-b.rank;
             });
 
-            let discordMembers = msg.channel.guild.members;
+            let sortedDiscordRanks = msg.channel.guild.roles.sort(function(a, b){
+                return b.position-a.position;
+            });
 
-            // console.log(msg.channel.guild);
-            // console.log(msg.channel.guild.members);
-            // console.log(discordMembers[0]);
+            let message = `${guildData.name} members:\r\n\r\n` + msg.channel.guild.members.map(function(discordMember){
 
-            let message = `${guildData.name} members:\r\n\r\n` + discordMembers.map(function(discordMember){
                 if(!discordMember.user.bot){
                     var usersGuildMember = guildMembers.find(function(guildMember){
                         return  (removeDiacritics(guildMember.character.name) == removeDiacritics(discordMember.nick || discordMember.user.username))
                                 ||
                                 (guildMember.character.name == (discordMember.nick || discordMember.user.username));
                     });
-                }
 
-                // console.log(msg.channel.guild.roles);
+                    let assignedRoles = [];
+                    for(let i in discordMember.roles){
 
-                let assignedRoles = [];
-                for(let i in discordMember.roles){
+                        var assignedRole = sortedDiscordRanks.find(function(role){
+                            return role.id == discordMember.roles[i];
+                        });
 
-                    var assignedRole = msg.channel.guild.roles.find(function(role){
-                        return role.id == discordMember.roles[i].id;
-                    });
+                        assignedRoles.push(assignedRole);
+                    }
 
-                    assignedRoles.push(assignedRole);
-                }
+                    console.log('Before sort: ',assignedRoles);
 
-                if(assignedRoles.length > 0){
-                    console.log(assignedRoles);
-                }
+                    var higestDiscordRole = {
+                        Rank: -1,
+                        Name: ''
+                    };
 
-                if (usersGuildMember){
-                    return `Discord name: ${discordMember.nick || discordMember.user.username}
+                    if(assignedRoles.length > 0){
+                        assignedRoles = assignedRoles.sort(function(a, b){
+                            return b.position-a.position;
+                        });
+
+                        console.log('After sort', assignedRoles);
+
+                        higestDiscordRole.Rank = assignedRoles[0].position
+                        higestDiscordRole.Name = assignedRoles[0].name
+                    }
+
+                    if (usersGuildMember){
+                        return `Discord name: ${discordMember.nick || discordMember.user.username}
 
 WoW Name: ${usersGuildMember.character.name}
 
-Discord rank: ${discordMember.rank}
+Discord rank: ${higestDiscordRole.Name} ${higestDiscordRole.Rank}
 
 WoW Rank: ${usersGuildMember.rank}
 
-`;
+    `;
                 }
+            }
             }).join('\r\n');
 
             bot.createMessage(msg.channel.id, message);
