@@ -115,58 +115,49 @@ Members: ${guildData.members.length}`;
 
     if(!msg.author.bot && msg.content === '!wh-rolecheck'){
         // console.log(msg.channel.guild.roles);
-        blizzard.wow.guild(['profile', 'members'], { realm: realm.toLowerCase(), name: guild.toLowerCase(), origin: region.toLowerCase() })
-        .then(response => {
-            // console.log(response.data);
-            var guildData = response.data;
+        if(realm && guild && region){
+            blizzard.wow.guild(['profile', 'members'], { realm: realm.toLowerCase(), name: guild.toLowerCase(), origin: region.toLowerCase() })
+            .then(response => {
 
-            let guildMembers = guildData.members.sort(function(a, b){
-                return a.rank-b.rank;
-            });
+                let guildData = response.data;
 
-            let sortedDiscordRanks = msg.channel.guild.roles.sort(function(a, b){
-                return b.position-a.position;
-            });
+                let guildMembers = guildData.members.sort((a, b) => a.rank-b.rank);
 
-            let message = `${guildData.name} members:\r\n\r\n` + msg.channel.guild.members.map(function(discordMember){
+                let message = `${guildData.name} members:\r\n\r\n` + msg.channel.guild.members.map(function(discordMember){
 
-                if(!discordMember.user.bot){
-                    var usersGuildMember = guildMembers.find(function(guildMember){
-                        return  (removeDiacritics(guildMember.character.name) == removeDiacritics(discordMember.nick || discordMember.user.username))
-                                ||
-                                (guildMember.character.name == (discordMember.nick || discordMember.user.username));
-                    });
-
-                    let assignedRoles = [];
-                    for(let i in discordMember.roles){
-
-                        var assignedRole = sortedDiscordRanks.find(function(role){
-                            return role.id == discordMember.roles[i];
+                    if(!discordMember.user.bot){
+                        var usersGuildMember = guildMembers.find(function(guildMember){
+                            return  (removeDiacritics(guildMember.character.name) == removeDiacritics(discordMember.nick || discordMember.user.username))
+                                    ||
+                                    (guildMember.character.name == (discordMember.nick || discordMember.user.username));
                         });
 
-                        assignedRoles.push(assignedRole);
-                    }
+                        let assignedRoles = [];
+                        for(let i in discordMember.roles){
 
-                    console.log('Before sort: ',assignedRoles);
+                            var assignedRole = msg.channel.guild.roles.find(function(role){
+                                return role.id == discordMember.roles[i];
+                            });
 
-                    var higestDiscordRole = {
-                        Rank: -1,
-                        Name: ''
-                    };
+                            assignedRoles.push(assignedRole);
+                        }
 
-                    if(assignedRoles.length > 0){
-                        assignedRoles = assignedRoles.sort(function(a, b){
-                            return b.position-a.position;
-                        });
+                        var higestDiscordRole = {
+                            Rank: -1,
+                            Name: ''
+                        };
 
-                        console.log('After sort', assignedRoles);
+                        if(assignedRoles.length > 0){
+                            assignedRoles = assignedRoles.sort(function(a, b){
+                                return b.position-a.position;
+                            });
 
-                        higestDiscordRole.Rank = assignedRoles[0].position
-                        higestDiscordRole.Name = assignedRoles[0].name
-                    }
+                            higestDiscordRole.Rank = assignedRoles[0].position
+                            higestDiscordRole.Name = assignedRoles[0].name
+                        }
 
-                    if (usersGuildMember){
-                        return `Discord name: ${discordMember.nick || discordMember.user.username}
+                        if (usersGuildMember){
+                            return `Discord name: ${discordMember.nick || discordMember.user.username}
 
 WoW Name: ${usersGuildMember.character.name}
 
@@ -174,13 +165,16 @@ Discord rank: ${higestDiscordRole.Name} ${higestDiscordRole.Rank}
 
 WoW Rank: ${usersGuildMember.rank}
 
-    `;
+`;
+                    }
                 }
-            }
-            }).join('\r\n');
+                }).join('\r\n');
 
-            bot.createMessage(msg.channel.id, message);
-        });
+                bot.createMessage(msg.channel.id, message);
+            });
+        } else {
+            bot.createMessage(msg.channel.id, 'You need to provide and save your region, realm and guild name using the commands: `!wh-setregion EU|US` `!wh-setrealm realm name` and `!wh-setguild guild name`, saving them with `!wh-save`');
+        }
     }
 });
 
